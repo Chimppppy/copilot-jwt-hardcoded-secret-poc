@@ -1,6 +1,10 @@
 
 
-https://github.com/Chimppppy/copilot-jwt-hardcoded-secret-poc/blob/main/pocvid.mp4
+
+https://github.com/user-attachments/assets/7527877b-dd3b-40da-8c11-97fe733b265f
+
+
+
 # CVE-PENDING CoPilot: Unauthenticated Full Admin Compromise via Hardcoded JWT Secret
 
 > **Disclosure type:** Responsible disclosure  
