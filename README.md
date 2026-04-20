@@ -1,8 +1,6 @@
 
-[![Watch the demo](https://img.shields.io/badge/Watch-Demo-red?style=for-the-badge&logo=github)]([
 
-https://github.com/Chimppppy/copilot-jwt-hardcoded-secret-poc/blob/main/pocvid.mp4](https://github.com/Chimppppy/copilot-jwt-hardcoded-secret-poc/blob/main/pocvid.mp4))
-
+https://github.com/Chimppppy/copilot-jwt-hardcoded-secret-poc/blob/main/pocvid.mp4
 # CVE-PENDING CoPilot: Unauthenticated Full Admin Compromise via Hardcoded JWT Secret
 
 > **Disclosure type:** Responsible disclosure  
