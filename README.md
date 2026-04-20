@@ -1,3 +1,8 @@
+
+
+
+
+
 # CVE-PENDING — CoPilot: Unauthenticated Full Admin Compromise via Hardcoded JWT Secret
 
 > **Disclosure type:** Responsible disclosure  
