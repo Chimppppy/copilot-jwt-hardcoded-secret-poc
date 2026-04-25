@@ -9,7 +9,7 @@ https://github.com/user-attachments/assets/7527877b-dd3b-40da-8c11-97fe733b265f
 
 > **Disclosure type:** Responsible disclosure  
 > **Severity:** Critical (CVSS 3.1: 10.0)  
-> **Status:** Unpatched reported to maintainers  
+> **Status:** patched in 1.57
 > **Affected software:** [CoPilot](https://github.com/socfortress/CoPilot) SOC platform by SOCFortress  
 > **Affected versions:** All versions where `JWT_SECRET` is unset (including the default Docker Compose setup)
 
