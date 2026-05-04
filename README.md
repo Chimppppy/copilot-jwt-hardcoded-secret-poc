@@ -1,11 +1,9 @@
 
-CVE: CVE-2026-42869
-
 https://github.com/user-attachments/assets/7527877b-dd3b-40da-8c11-97fe733b265f
 
 
 
-# CVE-PENDING CoPilot: Unauthenticated Full Admin Compromise via Hardcoded JWT Secret
+# CVE-2026-42869 CoPilot: Unauthenticated Full Admin Compromise via Hardcoded JWT Secret
 
 > **Disclosure type:** Responsible disclosure  
 > **Severity:** Critical (CVSS 3.1: 10.0)  
